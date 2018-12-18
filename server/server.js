@@ -2,7 +2,7 @@ const path = require('path')
 const express = require('express')
 const socketIO = require('socket.io')
 const http = require('http')
-const {generateMessage} = require('../utils/messageGenerate')
+const {generateMessage,generateLocationMessage} = require('../utils/messageGenerate')
 
 var publicPath = path.join(__dirname, '../public')
 var app = express()
@@ -18,19 +18,15 @@ io.on('connection', (socket) => {
 
     socket.emit('newMessage',generateMessage("Admin","Welcome to chat app"))
     
-    socket.broadcast.emit('newMessage',{
-        from:"Admin",
-        text:"New User added",
-        createdAt: new Date().getTime()
-    })
+    socket.broadcast.emit('newMessage',generateMessage('Admin','New UserAdded'))
 
     socket.on('createMessage',(message,callback)=>{
-        io.emit('newMessage',{
-            from:message.from,
-            text:message.text,
-            createdAt: new Date().getTime()
-        })
+        io.emit('newMessage',generateMessage(message.from,message.text))
         callback()
+    })
+
+    socket.on('currentLocation',(coords)=>{
+        io.emit('newLocationMessage',generateLocationMessage('Admin',coords.latitude, coords.longitude))
     })
 
     socket.on('disconnect', () => {
